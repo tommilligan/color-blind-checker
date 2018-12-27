@@ -1,0 +1,10 @@
+{
+  "bin": {
+    "color-blind-checker": "./src/cli.js"
+  },
+  "dependencies": {
+    "chroma-js": "^2.0.2",
+    "color-blind": "^0.1.1",
+    "commander": "^2.19.0"
+  }
+}
