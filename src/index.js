@@ -12,6 +12,17 @@ function deltaEAverage(color0, color1) {
 }
 
 /**
+ * Calculate warnings based on absolute distance and ratio to normal
+ */
+function calculateWarnings({ ratio, distance, contrast }) {
+    return {
+        informationLoss: ratio >= 5.0,
+        indistinguishable: distance <= 2.0,
+        lowContrast: contrast < 4.5
+    };
+}
+
+/**
  * Responsible for handling pairs of colors
  */
 class Checker {
@@ -47,18 +58,26 @@ class Checker {
         // get results for the unfiltered pair of colors
         results.filters.trichromat = {
             colors: this.colorsHex(),
+            contrast: this.contrast(),
             distance: this.delta(),
             ratio: 1.0
         };
+        results.filters.trichromat.warnings = calculateWarnings(
+            results.filters.trichromat
+        );
         // get results for each color deficient pair
         for (const deficiency of Object.keys(blinder)) {
             const deficiencyChecker = this.as(deficiency);
             const delta = deficiencyChecker.delta();
             results.filters[deficiency] = {
                 colors: deficiencyChecker.colorsHex(),
+                contrast: deficiencyChecker.contrast(),
                 distance: delta,
                 ratio: results.filters.trichromat.distance / delta
             };
+            results.filters[deficiency].warnings = calculateWarnings(
+                results.filters[deficiency]
+            );
             total += delta;
             count += 1;
         }
@@ -78,6 +97,10 @@ class Checker {
         return this.colors.map(function(color) {
             return color.hex();
         });
+    }
+
+    contrast() {
+        return chroma.contrast(...this.colors);
     }
 
     /**
