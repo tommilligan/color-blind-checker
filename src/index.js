@@ -1,16 +1,22 @@
 const chroma = require("chroma-js");
 const blinder = require("color-blind");
 
+/**
+ * Takes two chroma color objects and returns the average deltaE distance
+ * between them (symmetrical metric)
+ */
 function deltaEAverage(color0, color1) {
     return (
         (chroma.deltaE(color0, color1) + chroma.deltaE(color1, color0)) / 2.0
     );
 }
 
+/**
+ * Responsible for handling pairs of colors
+ */
 class Checker {
     constructor(color0, color1) {
-        this.color0 = chroma(color0);
-        this.color1 = chroma(color1);
+        this.colors = [chroma(color0), chroma(color1)];
     }
 
     /**
@@ -22,8 +28,8 @@ class Checker {
     as(deficiency = "achromatopsia") {
         const deficiencyFilter = blinder[deficiency];
         return new Checker(
-            deficiencyFilter(this.color0.hex()),
-            deficiencyFilter(this.color1.hex())
+            deficiencyFilter(this.colors[0].hex()),
+            deficiencyFilter(this.colors[1].hex())
         );
     }
 
@@ -38,11 +44,22 @@ class Checker {
         let total = 0.0;
         let count = 0;
 
-        results.filters.trichromat = this.delta();
+        // get results for the unfiltered pair of colors
+        results.filters.trichromat = {
+            colors: this.colorsHex(),
+            distance: this.delta(),
+            ratio: 1.0
+        };
+        // get results for each color deficient pair
         for (const deficiency of Object.keys(blinder)) {
-            const delta = this.as(deficiency).delta();
+            const deficiencyChecker = this.as(deficiency);
+            const delta = deficiencyChecker.delta();
+            results.filters[deficiency] = {
+                colors: deficiencyChecker.colorsHex(),
+                distance: delta,
+                ratio: results.filters.trichromat.distance / delta
+            };
             total += delta;
-            results.filters[deficiency] = delta;
             count += 1;
         }
 
@@ -55,10 +72,19 @@ class Checker {
     }
 
     /**
+     * Returns current colors as hex values
+     */
+    colorsHex() {
+        return this.colors.map(function(color) {
+            return color.hex();
+        });
+    }
+
+    /**
      * Return the difference between the checker's two colors.
      */
     delta() {
-        return deltaEAverage(this.color0, this.color1);
+        return deltaEAverage(...this.colors);
     }
 }
 
