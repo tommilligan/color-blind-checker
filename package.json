@@ -1,4 +1,13 @@
 {
+  "name": "color-blind-checker",
+  "version": "0.1.0",
+  "description": "check pairs of colors for accessibility",
+  "author": "Tom Milligan",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tommilligan/color-blind-checker"
+  },
+  "main": "src/index.js",
   "bin": {
     "color-blind-checker": "./src/cli.js"
   },
