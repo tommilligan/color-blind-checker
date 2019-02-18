@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "chalk": "^2.4.1",
-    "chroma-js": "^2.0.2",
+    "chroma-js": "^2.0.3",
     "color-blind": "^0.1.1",
     "commander": "^2.19.0"
   }
